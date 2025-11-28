@@ -1,203 +1,187 @@
-import { useState, useEffect, useRef } from 'react';
-import { supabase, PortfolioItem } from '@/lib/supabase';
-import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+// src/hooks/usePortfolio.ts
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-export type PortfolioItemWithImages = PortfolioItem & {
-  featured_images: string[];
-};
+export type PortfolioCategory =
+  | "Video"
+  | "Photography"
+  | "Web App"
+  | "Marketing";
+
+export interface PortfolioItem {
+  id: string;
+  title: string;
+  description: string;
+  category: PortfolioCategory;
+  media_url: string | null;
+  thumbnail_url: string;
+  embed_code?: string | null;
+  gallery_embed_url?: string | null;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PortfolioInput {
+  title: string;
+  description: string;
+  category: PortfolioCategory;
+  media_url: string | null;
+  thumbnail_url: string;
+  embed_code?: string | null;
+  gallery_embed_url?: string | null;
+  position?: number;
+}
 
 export function usePortfolio() {
-  const [items, setItems] = useState<PortfolioItemWithImages[]>([]);
-  const [loading, setLoading] = useState(true); 
-  const hasFetched = useRef(false);
-  const { isAdmin } = useAuth();
+  const [items, setItems] = useState<PortfolioItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  console.log('🔄 usePortfolio initialized'); 
-
-  // Fetch all projects + images
-  const fetchItems = async () => {
-    console.log('📥 fetchItems: loading...');
+  // ---------------------------------------------------------------------------
+  // FETCH ALL ITEMS
+  // ---------------------------------------------------------------------------
+  const fetchItems = useCallback(async () => {
     setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('portfolio_items')
-        .select(`*, portfolio_item_images(image_url)`) // join images
-        .order('position', { ascending: true });
-      if (error) throw error;
-      const mapped = (data || []).map((d: any) => ({
-        ...d,
-        featured_images: (d.portfolio_item_images || []).map((i: any) => i.image_url),
-      }));
-      console.log(`✅ fetchItems: ${mapped.length} items`);
-      setItems(mapped);
-    } catch (err: any) {
-      console.error('❌ fetchItems error:', err.message || err);
-      toast.error('Failed to load portfolio items');
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setError(null);
 
-  useEffect(() => {
-    if (!hasFetched.current) {
-      console.log('🚀 Initial fetchItems');
-      fetchItems();
-      hasFetched.current = true;
+    const { data, error } = await supabase
+      .from("portfolio_items") // ✅ CORRECT TABLE NAME
+      .select("*")
+      .order("position", { ascending: true })
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("❌ Portfolio Load Error:", error.message);
+      setError(error.message);
+      setItems([]);
+    } else {
+      setItems(data as PortfolioItem[]);
     }
+
+    setLoading(false);
   }, []);
 
-  // Fetch one project by ID + images
-  const fetchItemById = async (id: string): Promise<PortfolioItemWithImages | null> => {
-    console.log(`🔍 fetchItemById: ${id}`);
-    try {
-      const { data, error } = await supabase
-        .from('portfolio_items')
-        .select(`*, portfolio_item_images(image_url)`)
-        .eq('id', id)
-        .single();
-      if (error) throw error;
-      const item: PortfolioItemWithImages = {
-        ...data,
-        featured_images: (data.portfolio_item_images || []).map((i: any) => i.image_url),
-      };
-      console.log('✅ fetchItemById:', item.title);
-      return item;
-    } catch (err: any) {
-      console.error('❌ fetchItemById error:', err.message || err);
-      return null;
-    }
-  };
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
-  // Add project + its images
-  const addItem = async (newItem: Partial<PortfolioItemWithImages>) => {
-    console.log('➕ addItem:', newItem.title);
-    const { featured_images, ...itemFields } = newItem;
-    try {
+  // ---------------------------------------------------------------------------
+  // ADD NEW ITEM
+  // ---------------------------------------------------------------------------
+  const addItem = useCallback(async (payload: PortfolioInput) => {
+    const { data, error } = await supabase
+      .from("portfolio_items")
+      .insert({
+        title: payload.title,
+        description: payload.description,
+        category: payload.category,
+        media_url: payload.media_url,
+        thumbnail_url: payload.thumbnail_url,
+        embed_code: payload.embed_code ?? null,
+        gallery_embed_url: payload.gallery_embed_url ?? null,
+        position: payload.position ?? 0,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("❌ Add Portfolio Error:", error.message);
+      return { error };
+    }
+
+    if (data) setItems((prev) => [data as PortfolioItem, ...prev]);
+
+    return { error: null };
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // UPDATE ITEM
+  // ---------------------------------------------------------------------------
+  const updateItem = useCallback(
+    async (id: string, payload: PortfolioInput) => {
       const { data, error } = await supabase
-        .from('portfolio_items')
-        .insert([itemFields])
+        .from("portfolio_items")
+        .update({
+          title: payload.title,
+          description: payload.description,
+          category: payload.category,
+          media_url: payload.media_url,
+          thumbnail_url: payload.thumbnail_url,
+          embed_code: payload.embed_code ?? null,
+          gallery_embed_url: payload.gallery_embed_url ?? null,
+          position: payload.position ?? 0,
+        })
+        .eq("id", id)
         .select()
         .single();
-      if (error) throw error;
-      console.log('✅ addItem row:', data.id);
-      toast.success('Project added');
-      // Insert images
-      if (featured_images?.length) {
-        console.log(`➕ addItem: ${featured_images.length} images`);
-        const inserts = featured_images.map((url, idx) => ({
-          portfolio_id: data.id,
-          image_url: url,
-          position: idx,
-        }));
-        const { error: imgErr } = await supabase
-          .from('portfolio_item_images')
-          .insert(inserts);
-        if (imgErr) {
-          console.error('❌ addItem images error:', imgErr.message);
-          toast.error('Failed to add images');
-        }
-      }
-      setItems(prev => [{ ...(data as any), featured_images: featured_images || [] }, ...prev]);
-      return { error: null, data };
-    } catch (err: any) {
-      console.error('❌ addItem error:', err.message || err);
-      toast.error('Failed to add project');
-      return { error: err, data: null };
-    }
-  };
 
-  // Update project + replace images
-  const updateItem = async (
-    id: string,
-    fields: Partial<PortfolioItemWithImages>
-  ) => {
-    console.log('✏️ updateItem:', id, fields.title);
-    const { featured_images, ...itemFields } = fields as any;
-    try {
-      console.log('🔄 updateItem fields:', itemFields);
-      const { data, error } = await supabase
-        .from('portfolio_items')
-        .update(itemFields)
-        .eq('id', id)
-        .select()
-        .single();
-      if (error) throw error;
-      console.log('✅ updateItem row updated');
-      // Replace images
-      if (featured_images) {
-        console.log('🗑️ Deleting old images');
-        await supabase.from('portfolio_item_images').delete().eq('portfolio_id', id);
-        console.log(`➕ Inserting ${featured_images.length} images`);
-        const inserts = featured_images.map((url, idx) => ({
-          portfolio_id: id,
-          image_url: url,
-          position: idx,
-        }));
-        const { error: imgErr } = await supabase
-          .from('portfolio_item_images')
-          .insert(inserts);
-        if (imgErr) {
-          console.error('❌ updateItem images error:', imgErr.message);
-          toast.error('Failed to update images');
-        }
+      if (error) {
+        console.error("❌ Update Portfolio Error:", error.message);
+        return { error };
       }
-      toast.success('Project updated');
-      setItems(prev =>
-        prev.map(i =>
-          i.id === id
-            ? { ...i, ...data, featured_images: featured_images ?? i.featured_images }
-            : i
-        )
-      );
-      return { error: null, data };
-    } catch (err: any) {
-      console.error('❌ updateItem error:', err.message || err);
-      toast.error('Failed to update project');
-      return { error: err, data: null };
-    }
-  };
 
-  // Delete project + images
-  const deleteItem = async (id: string) => {
-    console.log('🗑️ deleteItem:', id);
-    try {
-      console.log('🗑️ deleteItem: removing images');
-      await supabase.from('portfolio_item_images').delete().eq('portfolio_id', id);
-      const { error } = await supabase
-        .from('portfolio_items')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-      console.log('✅ deleteItem done');
-      toast.success('Project deleted');
-      setItems(prev => prev.filter(i => i.id !== id));
+      if (data) {
+        setItems((prev) =>
+          prev.map((item) => (item.id === id ? (data as PortfolioItem) : item))
+        );
+      }
+
       return { error: null };
-    } catch (err: any) {
-      console.error('❌ deleteItem error:', err.message || err);
-      toast.error('Failed to delete project');
-      return { error: err };
+    },
+    []
+  );
+
+  // ---------------------------------------------------------------------------
+  // DELETE ITEM
+  // ---------------------------------------------------------------------------
+  const deleteItem = useCallback(async (id: string) => {
+    const { error } = await supabase
+      .from("portfolio_items")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("❌ Delete Portfolio Error:", error.message);
+      return { error };
     }
-  };
 
-  const refetch = async () => {
-    console.log('🔄 refetch'); 
-    await fetchItems();
-  };
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    return { error: null };
+  }, []);
 
-  console.log(
-    `📊 state: items=${items.length}, loading=${loading}, isAdmin=${isAdmin}`
+  // ---------------------------------------------------------------------------
+  // FETCH BY ID
+  // ---------------------------------------------------------------------------
+  const fetchItemById = useCallback(
+    async (id: string): Promise<PortfolioItem | null> => {
+      const cached = items.find((i) => i.id === id);
+      if (cached) return cached;
+
+      const { data, error } = await supabase
+        .from("portfolio_items")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("❌ Fetch Portfolio by ID Error:", error.message);
+        return null;
+      }
+
+      return data as PortfolioItem;
+    },
+    [items]
   );
 
   return {
     items,
     loading,
-    isAdmin,
-    fetchItemById,
+    error,
     addItem,
     updateItem,
     deleteItem,
-    refetch,
+    fetchItemById,
+    refetch: fetchItems,
   };
 }

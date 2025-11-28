@@ -1,138 +1,121 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Helmet } from 'react-helmet-async';
-import { Button } from '@/components/ui/button';
-import { Loader2, Plus } from 'lucide-react';
-import { usePortfolio } from '@/hooks/usePortfolio';
-import PortfolioCard from '@/components/PortfolioCard';
-import { useAuth } from '@/contexts/AuthContext';
-import PortfolioForm from '@/components/PortfolioForm';
+// src/pages/Portfolio.tsx (Cinematic Dark Version)
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async";
+import { Button } from "@/components/ui/button";
+import { Loader2, Plus } from "lucide-react";
+import { usePortfolio } from "@/hooks/usePortfolio";
+import PortfolioCard from "@/components/PortfolioCard";
+import { useAuth } from "@/contexts/AuthContext";
+import PortfolioForm from "@/components/PortfolioForm";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import Breadcrumb from '@/components/ui/breadcrumb';
+} from "@/components/ui/dialog";
+import Breadcrumb from "@/components/ui/breadcrumb";
 
 export default function Portfolio() {
-  console.log('✅ Portfolio component mounted');
-
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [editingProject, setEditingProject] = useState<any>(null);
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [editingProject, setEditingProject] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { items, loading, deleteItem, updateItem, addItem, refetch } = usePortfolio();
-  const { isAdmin, authLoading, user } = useAuth();
+  const { items, loading, deleteItem, updateItem, addItem, refetch } =
+    usePortfolio();
+  const { isAdmin } = useAuth();
 
-  console.log('🔍 Auth state in Portfolio:', {
-    isAdmin,
-    authLoading,
-    user: user?.email,
-  });
-
-  const categories = ['All', 'Web App', 'Photography', 'Marketing', 'Video'];
+  const categories = ["All", "Photography", "Video", "Marketing", "Web App"];
 
   const filteredProjects =
-    activeFilter === 'All'
+    activeFilter === "All"
       ? items
       : items.filter((item) => item.category === activeFilter);
 
-  const handleSave = async (data: any) => {
-    console.log(
-      editingProject ? '🔄 Updating project...' : '➕ Adding project...',
-      data
-    );
+  const handleSave = async (data) => {
+    const result = editingProject
+      ? await updateItem(editingProject.id, data)
+      : await addItem(data);
 
-    try {
-      const result = editingProject
-        ? await updateItem(editingProject.id, data)
-        : await addItem(data);
-
-      console.log('✅ [handleSave] Operation finished with:', result);
-
-      if (result && !result.error) {
-        console.log('✅ [handleSave] Closing modal...');
-        setIsModalOpen(false);
-        setEditingProject(null);
-        await refetch();
-      } else {
-        console.warn(
-          '⚠️ [handleSave] Modal not closing, error:',
-          result?.error
-        );
-      }
-    } catch (err) {
-      console.error('❌ [handleSave] Unexpected error:', err);
+    if (!result?.error) {
+      setIsModalOpen(false);
+      setEditingProject(null);
+      refetch();
     }
   };
 
   return (
     <>
       <Helmet>
-        <title>Portfolio - David Hohnholt</title>
-        <meta
-          name="description"
-          content="Explore David Hohnholt's portfolio of digital projects, photography, web applications, and marketing campaigns."
-        />
+        <title>Portfolio – David Hohnholt</title>
       </Helmet>
 
-      <div className="pt-16">
-        {/* ✅ Breadcrumb */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-          <Breadcrumb crumbs={[{ label: 'Home', href: '/' }, { label: 'Portfolio', href: '/portfolio'}]} />
+      <div className="pt-24 bg-black min-h-screen text-white">
+        {/* Breadcrumb (Gold on dark) */}
+        <div className="max-w-7xl mx-auto px-6 mb-6 opacity-80">
+          <Breadcrumb
+            crumbs={[
+              { label: "Home", href: "/" },
+              { label: "Portfolio", href: "/portfolio" },
+            ]}
+            textColor="text-amber-400"
+          />
         </div>
 
-        {/* ✅ Hero Section */}
-        <section className="py-20 bg-gradient-to-br from-white to-[#f8f8f5]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
+        {/* HERO — cinematic */}
+        <section className="py-20 bg-gradient-to-b from-black via-black/70 to-black">
+          <div className="max-w-7xl mx-auto px-6 text-center">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
+              className="text-5xl md:text-6xl font-light tracking-tight text-amber-400 mb-6"
             >
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                My Portfolio
-              </h1>
-              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                A showcase of creative projects, digital solutions, and
-                successful campaigns that demonstrate my passion for excellence
-                and innovation.
-              </p>
-            </motion.div>
+              Portfolio
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1 }}
+              className="text-stone-300 max-w-3xl mx-auto text-lg leading-relaxed"
+            >
+              A curated showcase of portraits, sports banners, digital media,
+              and creative storytelling — crafted with care and cinematic
+              intention.
+            </motion.p>
           </div>
         </section>
 
-        {/* ✅ Filter + Admin Add Button */}
-        <section className="py-8 bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <div className="flex flex-wrap gap-4">
+        {/* FILTERS */}
+        <section className="py-10 bg-black/80 backdrop-blur-xl border-t border-white/10 border-b">
+          <div className="max-w-7xl mx-auto px-6 flex flex-wrap justify-between items-center gap-6">
+            {/* Filter Pills */}
+            <div className="flex flex-wrap gap-3">
               {categories.map((category) => (
-                <Button
+                <button
                   key={category}
-                  variant={activeFilter === category ? 'default' : 'outline'}
                   onClick={() => setActiveFilter(category)}
-                  className={`${
+                  className={`px-4 py-2 rounded-full border text-sm transition ${
                     activeFilter === category
-                      ? 'bg-[#014040] hover:bg-[#012020] text-white'
-                      : 'border-[#014040] text-[#014040] hover:bg-[#014040] hover:text-white'
+                      ? "bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-500/20"
+                      : "border-white/20 text-stone-300 hover:border-amber-400 hover:text-amber-400"
                   }`}
                 >
                   {category}
-                </Button>
+                </button>
               ))}
             </div>
 
+            {/* Admin Add */}
             {isAdmin && (
               <Button
-                size="sm"
-                className="bg-[#014040] hover:bg-[#012020] text-white"
                 onClick={() => {
-                  console.log('➕ Opening modal for new project...');
                   setEditingProject(null);
                   setIsModalOpen(true);
                 }}
+                className="bg-amber-500 text-black hover:bg-amber-400 rounded-full shadow-md"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Project
@@ -141,23 +124,22 @@ export default function Portfolio() {
           </div>
         </section>
 
-        {/* ✅ Projects Grid */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* PROJECT GRID */}
+        <section className="py-24 bg-black">
+          <div className="max-w-7xl mx-auto px-6">
             {loading ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-[#014040]" />
+              <div className="flex justify-center py-32">
+                <Loader2 className="h-10 w-10 text-amber-400 animate-spin" />
               </div>
             ) : (
               <>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeFilter}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.4 }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"
                   >
                     {filteredProjects.map((project) => (
                       <PortfolioCard
@@ -166,7 +148,6 @@ export default function Portfolio() {
                         onEdit={
                           isAdmin
                             ? (p) => {
-                                console.log(`✏️ Editing project: ${p.title}`);
                                 setEditingProject(p);
                                 setIsModalOpen(true);
                               }
@@ -175,7 +156,6 @@ export default function Portfolio() {
                         onDelete={
                           isAdmin
                             ? async (id) => {
-                                console.log(`🗑️ Deleting project: ${id}`);
                                 await deleteItem(id);
                                 refetch();
                               }
@@ -187,13 +167,9 @@ export default function Portfolio() {
                 </AnimatePresence>
 
                 {filteredProjects.length === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-16"
-                  >
-                    <p className="text-gray-500 text-lg">No projects found in this category.</p>
-                  </motion.div>
+                  <div className="text-center text-stone-400 text-lg py-24">
+                    No projects available in this category.
+                  </div>
                 )}
               </>
             )}
@@ -201,34 +177,28 @@ export default function Portfolio() {
         </section>
       </div>
 
-      {/* ✅ Admin Add/Edit Modal */}
+      {/* ADMIN MODAL */}
       {isAdmin && (
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="max-w-lg h-[80vh] p-6 flex flex-col">  
+          <DialogContent className="max-w-lg h-[80vh] bg-black/90 border border-amber-400/20 text-white backdrop-blur-xl shadow-2xl shadow-amber-500/10">
             <DialogHeader>
-              <DialogTitle>
-                {editingProject ? 'Edit Project' : 'Add New Project'}
+              <DialogTitle className="text-amber-400">
+                {editingProject ? "Edit Project" : "Add New Project"}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-stone-400">
                 {editingProject
-                  ? 'Update the details of this project.'
-                  : 'Fill in the details to add a new project to your portfolio.'}
+                  ? "Update this portfolio entry."
+                  : "Create a new project showcase."}
               </DialogDescription>
             </DialogHeader>
 
-            {/* Scrollable form container */}
             <div className="overflow-y-auto flex-1 mt-4">
               <PortfolioForm
                 item={editingProject}
                 onSubmit={handleSave}
-                onCancel={() => {
-                  console.log('❌ Cancel button clicked');
-                  setIsModalOpen(false);
-                }}
-                isSubmitting={false}
+                onCancel={() => setIsModalOpen(false)}
               />
             </div>
-
           </DialogContent>
         </Dialog>
       )}

@@ -1,24 +1,33 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PortfolioItem } from '@/lib/supabase';
+// src/components/PortfolioForm.tsx
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { useForm, useFieldArray } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-const portfolioSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  category: z.enum(['Video', 'Photography', 'Web App', 'Marketing']),
-  media_url: z.string().url('Please enter a valid URL'),
-  thumbnail_url: z.string().url('Please enter a valid thumbnail URL'),
-  featured_images: z.array(z.string().url('Please enter a valid image URL')).optional(),
+import { PortfolioItem } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const schema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.enum(["Video", "Photography", "Web App", "Marketing"]),
+  media_url: z.string().url("Please enter a valid URL"),
+  thumbnail_url: z.string().url("Please enter a valid thumbnail URL"),
+  featured_images: z.array(z.string().url()).optional(),
 });
 
-type PortfolioFormData = z.infer<typeof portfolioSchema>;
+export type PortfolioFormData = z.infer<typeof schema>;
 
 interface PortfolioFormProps {
   item?: PortfolioItem & { featured_images?: string[] };
@@ -33,7 +42,6 @@ export default function PortfolioForm({
   onCancel,
   isSubmitting,
 }: PortfolioFormProps) {
-  const [preview, setPreview] = useState(item?.thumbnail_url || '');
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -41,11 +49,11 @@ export default function PortfolioForm({
     control,
     handleSubmit,
     setValue,
-    watch,
     reset,
+    watch,
     formState: { errors },
   } = useForm<PortfolioFormData>({
-    resolver: zodResolver(portfolioSchema),
+    resolver: zodResolver(schema),
     defaultValues: item
       ? {
           title: item.title,
@@ -53,167 +61,182 @@ export default function PortfolioForm({
           category: item.category,
           media_url: item.media_url,
           thumbnail_url: item.thumbnail_url,
-          featured_images: item.featured_images || [],
+          featured_images: item.featured_images ?? [],
         }
       : {
-          title: '',
-          description: '',
-          category: 'Web App',
-          media_url: '',
-          thumbnail_url: '',
+          title: "",
+          description: "",
+          category: "Web App",
+          media_url: "",
+          thumbnail_url: "",
           featured_images: [],
         },
   });
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'featured_images',
+    name: "featured_images",
   });
 
-  const category = watch('category');
-  const thumbnail_url = watch('thumbnail_url');
+  const thumbnail_url = watch("thumbnail_url");
+  const category = watch("category");
 
   const handleFormSubmit = async (data: PortfolioFormData) => {
     setIsLoading(true);
     try {
       await onSubmit(data);
-      if (!item) {
-        reset();
-        setPreview('');
-      }
-    } catch (error) {
-      console.error('Form submission error:', error);
+      if (!item) reset();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCancel = () => {
+  const cancelForm = () => {
     reset();
-    setPreview(item?.thumbnail_url || '');
     onCancel();
   };
 
+  const inputClasses =
+    "bg-black/40 border border-white/10 text-white placeholder-gray-400 " +
+    "focus:ring-2 focus:ring-amber-500/40 focus:border-amber-400/50";
+
+  const labelClasses = "block text-sm font-semibold text-amber-400 mb-1";
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      {/* TITLE */}
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-          Title *
-        </label>
+        <label className={labelClasses}>Title *</label>
         <Input
-          id="title"
-          {...register('title')}
-          className="mt-1"
+          {...register("title")}
           placeholder="Project title"
           disabled={isLoading}
+          className={inputClasses}
         />
-        {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
+        {errors.title && (
+          <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+        )}
       </div>
 
+      {/* DESCRIPTION */}
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-          Description *
-        </label>
+        <label className={labelClasses}>Description *</label>
         <Textarea
-          id="description"
-          {...register('description')}
+          {...register("description")}
           rows={3}
-          className="mt-1"
           placeholder="Project description"
           disabled={isLoading}
+          className={inputClasses}
         />
-        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
+        {errors.description && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.description.message}
+          </p>
+        )}
       </div>
 
+      {/* CATEGORY */}
       <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-          Category *
-        </label>
+        <label className={labelClasses}>Category *</label>
         <Select
           value={category}
-          onValueChange={(value) => setValue('category', value as any)}
+          onValueChange={(value) => setValue("category", value as any)}
           disabled={isLoading}
         >
-          <SelectTrigger className="mt-1">
+          <SelectTrigger className={`${inputClasses} mt-1`}>
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-black/90 text-white border border-white/10">
             <SelectItem value="Video">Video</SelectItem>
             <SelectItem value="Photography">Photography</SelectItem>
             <SelectItem value="Web App">Web App</SelectItem>
             <SelectItem value="Marketing">Marketing</SelectItem>
           </SelectContent>
         </Select>
-        {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>}
+
+        {errors.category && (
+          <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
+        )}
       </div>
 
+      {/* MEDIA URL */}
       <div>
-        <label htmlFor="media_url" className="block text-sm font-medium text-gray-700 mb-1">
-          Media URL *
-        </label>
+        <label className={labelClasses}>Media URL *</label>
         <Input
-          id="media_url"
-          {...register('media_url')}
-          className="mt-1"
-          placeholder="https://example.com/project"
+          {...register("media_url")}
+          placeholder="https://your-gallery-or-site.com/..."
           disabled={isLoading}
+          className={inputClasses}
         />
-        {errors.media_url && <p className="text-red-500 text-sm mt-1">{errors.media_url.message}</p>}
+        {errors.media_url && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.media_url.message}
+          </p>
+        )}
       </div>
 
+      {/* THUMBNAIL */}
       <div>
-        <label htmlFor="thumbnail_url" className="block text-sm font-medium text-gray-700 mb-1">
-          Thumbnail URL *
-        </label>
+        <label className={labelClasses}>Thumbnail URL *</label>
         <Input
-          id="thumbnail_url"
-          {...register('thumbnail_url')}
-          className="mt-1"
-          placeholder="https://example.com/thumbnail.jpg"
-          onChange={(e) => setPreview(e.target.value)}
+          {...register("thumbnail_url")}
+          placeholder="https://your-image.jpg"
           disabled={isLoading}
+          className={inputClasses}
         />
-        {errors.thumbnail_url && <p className="text-red-500 text-sm mt-1">{errors.thumbnail_url.message}</p>}
+
+        {errors.thumbnail_url && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.thumbnail_url.message}
+          </p>
+        )}
+
         {thumbnail_url && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-4"
+          >
             <img
               src={thumbnail_url}
-              alt="Thumbnail preview"
-              className="w-40 h-24 object-cover rounded border"
+              alt="Thumbnail"
+              className="w-40 h-24 object-cover rounded-lg border border-amber-400/30 shadow-md shadow-amber-500/20"
             />
           </motion.div>
         )}
       </div>
 
+      {/* FEATURED IMAGES */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Featured Images
-        </label>
+        <label className={labelClasses}>Featured Images (Carousel)</label>
+
         {fields.map((field, index) => (
           <div key={field.id} className="flex items-center gap-2 mb-2">
             <Input
-              {...register(`featured_images.${index}` as const)}
-              placeholder="https://example.com/image.jpg"
+              {...register(`featured_images.${index}`)}
+              placeholder="https://your-image.jpg"
               disabled={isLoading}
+              className={inputClasses}
             />
             <Button
               type="button"
-              variant="destructive"
               onClick={() => remove(index)}
-              disabled={isLoading}
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
               Remove
             </Button>
           </div>
         ))}
+
         <Button
           type="button"
-          variant="outline"
-          onClick={() => append('')}
+          onClick={() => append("")}
           disabled={isLoading}
+          className="border border-amber-400 text-amber-400 hover:bg-amber-400/20"
         >
           Add Image
         </Button>
+
         {errors.featured_images && (
           <p className="text-red-500 text-sm mt-1">
             {errors.featured_images.message as string}
@@ -221,19 +244,26 @@ export default function PortfolioForm({
         )}
       </div>
 
+      {/* ACTION BUTTONS */}
       <div className="flex gap-4 pt-4">
         <Button
           type="submit"
           disabled={isLoading || isSubmitting}
-          className="bg-[#014040] hover:bg-[#012020] text-white"
+          className="bg-amber-500 text-black hover:bg-amber-400 font-semibold shadow-lg shadow-amber-500/20"
         >
-          {(isLoading || isSubmitting) ? 'Saving...' : item ? 'Update Item' : 'Add Item'}
+          {isLoading || isSubmitting
+            ? "Saving..."
+            : item
+              ? "Update Item"
+              : "Add Item"}
         </Button>
+
         <Button
           type="button"
           variant="outline"
-          onClick={handleCancel}
+          onClick={cancelForm}
           disabled={isLoading || isSubmitting}
+          className="border border-amber-400 text-amber-400 hover:bg-amber-400/20"
         >
           Cancel
         </Button>

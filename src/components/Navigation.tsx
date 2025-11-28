@@ -1,51 +1,46 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Menu, X, Shield, User, LogOut } from "lucide-react";
+import { Menu, X, Shield, User, LogOut, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 export default function Navigation() {
   try {
-    console.log("✅ Navigation component rendered");
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+
     const location = useLocation();
     const navigate = useNavigate();
     const { user, isAdmin, authLoading, signOut } = useAuth();
 
-    const safeIsAdmin = Boolean(isAdmin);
     const safeUser = user || null;
 
+    // Fade nav background once user scrolls
     useEffect(() => {
       const handleScroll = () => setScrolled(window.scrollY > 50);
       window.addEventListener("scroll", handleScroll);
       return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    // Navigation Items
     const navItems = useMemo(() => {
-      const items: { name: string; path: string }[] = [
+      const items = [
         { name: "Home", path: "/" },
-        { name: "About", path: "/about" },
         { name: "Portfolio", path: "/portfolio" },
+        { name: "Pricing", path: "/pricing" },
         { name: "Contact", path: "/contact" },
       ];
-      if (!authLoading) {
-        if (safeUser) items.push({ name: "Profile", path: "/profile" });
-        if (safeIsAdmin) items.push({ name: "Admin", path: "/admin" });
-      }
+      if (safeUser) items.push({ name: "Profile", path: "/profile" });
+      if (isAdmin) items.push({ name: "Admin", path: "/admin" });
       return items;
-    }, [authLoading, safeUser, safeIsAdmin]);
-
-    console.log("🔄 Navigation items:", navItems);
+    }, [safeUser, isAdmin]);
 
     const handleLogout = async () => {
-      console.log("🔄 Logging out...");
       const { error } = await signOut();
       if (error) {
-        console.error("❌ Logout failed:", error.message);
-        toast.error("Logout failed, try again.");
+        toast.error("Logout failed. Try again.");
       } else {
         toast.success("You have logged out.");
         navigate("/", { replace: true });
@@ -54,115 +49,154 @@ export default function Navigation() {
 
     return (
       <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "bg-white/95 backdrop-blur-sm shadow-sm" : "bg-transparent"
-        }`}
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 
+          ${scrolled ? "bg-black/70 backdrop-blur-lg shadow-lg" : "bg-black/10"}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* ---------------------------------------- */}
+          {/* TOP BAR                                  */}
+          {/* ---------------------------------------- */}
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="font-bold text-xl text-[#014040]">
+            {/* Logo */}
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-amber-400 font-bold text-xl tracking-wide hover:text-amber-300 transition"
+            >
+              <Camera className="h-5 w-5" />
               David Hohnholt
             </Link>
 
-            {/* ✅ Desktop Navigation */}
-            <div className="hidden md:flex space-x-8">
+            {/* ---------------------------------------- */}
+            {/* DESKTOP NAVIGATION                       */}
+            {/* ---------------------------------------- */}
+            <div className="hidden md:flex items-center space-x-8">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`transition-colors duration-200 flex items-center gap-1 ${
-                    location.pathname === item.path
-                      ? "text-[#014040] font-medium border-b-2 border-[#014040] pb-1"
-                      : "text-gray-600 hover:text-[#014040]"
-                  }`}
+                  className={`transition-colors duration-200 relative 
+                    ${
+                      location.pathname === item.path
+                        ? "text-amber-400 font-semibold"
+                        : "text-gray-300 hover:text-amber-400"
+                    }
+                  `}
                 >
-                  {item.name === "Profile" && <User className="h-4 w-4" />}
-                  {item.name === "Admin" && <Shield className="h-4 w-4" />}
                   {item.name}
+
+                  {/* little glow underline on active */}
+                  {location.pathname === item.path && (
+                    <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-amber-400 rounded-full shadow-md" />
+                  )}
                 </Link>
               ))}
+
               {!authLoading && !safeUser && (
                 <Link
                   to="/login"
-                  className="text-gray-600 hover:text-[#014040] transition-colors duration-200"
+                  className="text-gray-300 hover:text-amber-400 transition"
                 >
                   Login
                 </Link>
               )}
+
               {!authLoading && safeUser && (
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1 text-gray-600 hover:text-[#014040]"
+                  className="flex items-center gap-1 text-gray-300 hover:text-amber-400 transition"
                 >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </Button>
+                  <LogOut className="h-4 w-4" /> Logout
+                </button>
               )}
+
+              {/* BOOK NOW BUTTON */}
+              <Link
+                to="/booking"
+                className="ml-3 px-4 py-2 rounded-xl bg-amber-500 text-black font-semibold shadow-lg hover:bg-amber-600 transition-all"
+              >
+                Book Now
+              </Link>
             </div>
 
-            {/* ✅ Mobile Menu Button */}
+            {/* ---------------------------------------- */}
+            {/* MOBILE MENU BUTTON                       */}
+            {/* ---------------------------------------- */}
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden"
+              className="md:hidden text-amber-400"
               onClick={() => setIsOpen(!isOpen)}
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
           </div>
 
-          {/* ✅ Mobile Navigation */}
+          {/* ---------------------------------------- */}
+          {/* MOBILE SLIDE-DOWN MENU                   */}
+          {/* ---------------------------------------- */}
           {isOpen && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="md:hidden bg-white border-t border-gray-200"
+              exit={{ opacity: 0 }}
+              className="md:hidden bg-black/90 border-t border-white/10 rounded-b-xl"
             >
-              <div className="px-2 pt-2 pb-3 space-y-1">
+              <div className="px-2 pt-2 pb-4 space-y-1">
                 {navItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsOpen(false)}
-                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                      location.pathname === item.path
-                        ? "text-[#014040] bg-[#f8f8f5]"
-                        : "text-gray-600 hover:text-[#014040] hover:bg-gray-50"
-                    } flex items-center gap-2`}
+                    className={`block px-4 py-3 rounded-lg text-base transition 
+                      ${
+                        location.pathname === item.path
+                          ? "bg-amber-500 text-black font-semibold"
+                          : "text-gray-200 hover:bg-white/10"
+                      }
+                    `}
                   >
-                    {item.name === "Admin" && <Shield className="h-4 w-4" />}
-                    {item.name === "Profile" && <User className="h-4 w-4" />}
                     {item.name}
                   </Link>
                 ))}
-                {!authLoading && !safeUser && (
+
+                {!safeUser && (
                   <Link
                     to="/login"
                     onClick={() => setIsOpen(false)}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-[#014040] hover:bg-gray-50 transition-colors duration-200"
+                    className="block px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg"
                   >
                     Login
                   </Link>
                 )}
-                {!authLoading && safeUser && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
+
+                {safeUser && (
+                  <button
                     onClick={() => {
                       handleLogout();
                       setIsOpen(false);
                     }}
-                    className="w-full flex items-center gap-2 text-gray-600 hover:text-[#014040]"
+                    className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/10 flex items-center gap-2 rounded-lg"
                   >
                     <LogOut className="h-4 w-4" />
                     Logout
-                  </Button>
+                  </button>
                 )}
+
+                {/* BOOK NOW BUTTON */}
+                <Link
+                  to="/booking"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full mt-3 text-center px-4 py-3 bg-amber-500 text-black font-bold rounded-xl shadow-lg hover:bg-amber-600"
+                >
+                  Book Now
+                </Link>
               </div>
             </motion.div>
           )}
@@ -170,10 +204,10 @@ export default function Navigation() {
       </motion.nav>
     );
   } catch (error) {
-    console.error("❌ Navigation crashed:", error);
+    console.error("Navigation crashed:", error);
     return (
       <nav className="p-4 bg-red-100 text-red-700">
-        Error loading navigation. Check console.
+        Error loading navigation.
       </nav>
     );
   }
