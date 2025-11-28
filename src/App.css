@@ -1,0 +1,36 @@
+html {
+  scroll-behavior: smooth;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #014040;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #012020;
+}
+
+/* Lazy load image fade-in effect */
+.lazy-load-image-loaded {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.lazy-load-image-background {
+  background-color: #f3f4f6;
+}
