@@ -1,14 +1,14 @@
-// /home/project/src/contexts/AuthContext.tsx
+// /src/contexts/AuthContext.tsx
 import {
   createContext,
   useContext,
   useEffect,
   useState,
-  useRef,
+  useCallback,
   ReactNode,
 } from "react";
-import { User } from "@supabase/supabase-js";
-import { supabase, Profile } from "@/lib/supabase";
+import type { User, Session } from "@supabase/supabase-js";
+import { supabase, type Profile } from "@/lib/supabase";
 
 interface AuthContextProps {
   user: User | null;
@@ -16,7 +16,10 @@ interface AuthContextProps {
   authLoading: boolean;
   profileLoading: boolean;
   isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{ data: { session: Session | null } | null; error: any }>;
   signOut: () => Promise<{ error: any }>;
   refetchProfile: () => Promise<void>;
 }
@@ -28,17 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
-  const hasFetchedProfile = useRef(false);
 
-  console.log("✅ AuthProvider rendered");
-
-  // ✅ Fetch user profile
-  const fetchProfile = async (userId: string) => {
-    console.log(`🔄 fetchProfile called for userId: ${userId}`);
-    if (!userId) {
-      console.warn("⚠️ No userId passed to fetchProfile");
-      return;
-    }
+  // --------------------------------------------------
+  // Fetch profile for a given user id
+  // --------------------------------------------------
+  const fetchProfile = useCallback(async (userId: string) => {
+    if (!userId) return;
 
     setProfileLoading(true);
     try {
@@ -52,51 +50,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("❌ Error fetching profile:", error.message);
         setProfile(null);
       } else {
-        console.log("✅ Profile fetched:", data);
-        setProfile(data);
+        setProfile(data as Profile);
       }
     } catch (err) {
       console.error("❌ Unexpected error fetching profile:", err);
       setProfile(null);
     } finally {
-      hasFetchedProfile.current = true;
       setProfileLoading(false);
     }
-  };
+  }, []);
 
-  // ✅ Allow manual profile refresh (e.g., after updates)
-  const refetchProfile = async () => {
-    if (user?.id) {
-      console.log("🔄 Refetching profile manually...");
-      hasFetchedProfile.current = false;
-      await fetchProfile(user.id);
-    } else {
-      console.warn("⚠️ Tried to refetchProfile, but no user is logged in");
-    }
-  };
-
+  // --------------------------------------------------
+  // Initialize auth from Supabase session (cookie/local)
+  // and subscribe to auth state changes
+  // --------------------------------------------------
   useEffect(() => {
-    console.log("🔄 useEffect(initAuth) triggered. Current user:", user?.email);
-
-    let authSubscription: any;
+    let isMounted = true;
+    let subscription:
+      | ReturnType<
+          typeof supabase.auth.onAuthStateChange
+        >["data"]["subscription"]
+      | null = null;
 
     const initAuth = async () => {
-      console.log("🚀 Initializing auth...");
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        // ✅ Read session from Supabase (internally uses cookies/local storage)
+        const { data, error } = await supabase.auth.getSession();
 
+        if (error) {
+          console.error("❌ Error getting session:", error.message);
+        }
+
+        const session = data?.session ?? null;
         const currentUser = session?.user ?? null;
-        console.log("✅ Session retrieved:", currentUser);
+
+        if (!isMounted) return;
 
         setUser(currentUser);
 
-        if (currentUser && !hasFetchedProfile.current) {
-          console.log("🔄 Fetching profile for logged-in user...");
+        if (currentUser) {
           await fetchProfile(currentUser.id);
         } else {
-          console.log("ℹ️ No current user or profile already fetched");
           setProfile(null);
         }
       } catch (err) {
@@ -104,83 +98,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setProfile(null);
       } finally {
-        console.log("✅ Auth initialization complete. Setting authLoading=false");
-        setAuthLoading(false);
+        if (isMounted) {
+          setAuthLoading(false);
+        }
       }
 
-      // ✅ Handle auth state changes
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log(`🔄 Auth state changed: ${event}`, session);
-        const newUser = session?.user ?? null;
+      // ✅ Listen for login / logout / token refresh
+      const { data: listener } = supabase.auth.onAuthStateChange(
+        async (_event, session) => {
+          const nextUser = session?.user ?? null;
 
-        if (newUser?.id !== user?.id) {
-          console.log("🔄 Updating user in context:", newUser);
-          setUser(newUser);
+          setUser(nextUser);
 
-          if (newUser) {
-            hasFetchedProfile.current = false;
-            await fetchProfile(newUser.id);
+          if (nextUser) {
+            await fetchProfile(nextUser.id);
           } else {
-            console.log("ℹ️ No user found after state change, clearing profile");
             setProfile(null);
           }
-        } else {
-          console.log("ℹ️ User unchanged, skipping profile fetch");
         }
-      });
+      );
 
-      authSubscription = subscription;
+      subscription = listener.subscription;
     };
 
     initAuth();
 
     return () => {
-      console.log("🧹 Cleaning up auth subscription");
-      authSubscription?.unsubscribe();
+      isMounted = false;
+      subscription?.unsubscribe();
     };
-  }, [user?.id]);
+  }, [fetchProfile]);
 
+  // --------------------------------------------------
+  // Sign in – Supabase sets/updates session cookie
+  // --------------------------------------------------
   const signIn = async (email: string, password: string) => {
-    console.log(`🚀 signIn called for: ${email}`);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
+    if (!error && data?.session?.user) {
+      // ensure immediate UI update; listener will also fire
+      setUser(data.session.user);
+      await fetchProfile(data.session.user.id);
+    } else if (error) {
       console.error("❌ Sign in error:", error.message);
-    } else {
-      console.log("✅ Sign in successful:", data.session?.user?.email);
     }
 
     return { data, error };
   };
 
+  // --------------------------------------------------
+  // Sign out – clears Supabase session (cookie/local)
+  // --------------------------------------------------
   const signOut = async () => {
-    console.log("🚀 Signing out...");
     const { error } = await supabase.auth.signOut();
+
     if (!error) {
-      console.log("✅ Signed out successfully");
       setUser(null);
       setProfile(null);
-      hasFetchedProfile.current = false;
     } else {
       console.error("❌ Sign out error:", error.message);
     }
+
     return { error };
   };
 
-  const isAdmin = profile?.role === "admin";
+  const refetchProfile = async () => {
+    if (user?.id) {
+      await fetchProfile(user.id);
+    } else {
+      console.warn("⚠️ Tried refetchProfile, but no user is logged in");
+    }
+  };
 
-  console.log("🔍 AuthContext State:", {
-    user: user?.email || null,
-    profile,
-    authLoading,
-    profileLoading,
-    isAdmin,
-  });
+  const isAdmin = profile?.role === "admin";
 
   return (
     <AuthContext.Provider
@@ -201,9 +194,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context;
+  return ctx;
 }

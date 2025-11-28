@@ -9,6 +9,7 @@ export type PortfolioCategory =
   | "Marketing";
 
 export interface PortfolioItem {
+  featured_images?: string[];
   id: string;
   title: string;
   description: string;
@@ -23,6 +24,7 @@ export interface PortfolioItem {
 }
 
 export interface PortfolioInput {
+  featured_images?: string[];
   title: string;
   description: string;
   category: PortfolioCategory;
@@ -81,6 +83,7 @@ export function usePortfolio() {
         embed_code: payload.embed_code ?? null,
         gallery_embed_url: payload.gallery_embed_url ?? null,
         position: payload.position ?? 0,
+        featured_images: payload.featured_images ?? [],
       })
       .select()
       .single();
@@ -111,6 +114,7 @@ export function usePortfolio() {
           embed_code: payload.embed_code ?? null,
           gallery_embed_url: payload.gallery_embed_url ?? null,
           position: payload.position ?? 0,
+          featured_images: payload.featured_images ?? [],
         })
         .eq("id", id)
         .select()

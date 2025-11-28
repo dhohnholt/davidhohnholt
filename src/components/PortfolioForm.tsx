@@ -1,7 +1,7 @@
 // src/components/PortfolioForm.tsx
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -44,33 +44,38 @@ export default function PortfolioForm({
 }: PortfolioFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
+  const defaultValues = useMemo(
+    () =>
+      item
+        ? {
+            title: item.title,
+            description: item.description,
+            category: item.category,
+            media_url: item.media_url,
+            thumbnail_url: item.thumbnail_url,
+            featured_images: item.featured_images ?? [],
+          }
+        : {
+            title: "",
+            description: "",
+            category: "Web App",
+            media_url: "",
+            thumbnail_url: "",
+            featured_images: [],
+          },
+    [item]
+  );
+
   const {
     register,
     control,
     handleSubmit,
-    setValue,
     reset,
     watch,
     formState: { errors },
   } = useForm<PortfolioFormData>({
     resolver: zodResolver(schema),
-    defaultValues: item
-      ? {
-          title: item.title,
-          description: item.description,
-          category: item.category,
-          media_url: item.media_url,
-          thumbnail_url: item.thumbnail_url,
-          featured_images: item.featured_images ?? [],
-        }
-      : {
-          title: "",
-          description: "",
-          category: "Web App",
-          media_url: "",
-          thumbnail_url: "",
-          featured_images: [],
-        },
+    defaultValues,
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -79,7 +84,10 @@ export default function PortfolioForm({
   });
 
   const thumbnail_url = watch("thumbnail_url");
-  const category = watch("category");
+
+  useEffect(() => {
+    reset(defaultValues);
+  }, [defaultValues, reset]);
 
   const handleFormSubmit = async (data: PortfolioFormData) => {
     setIsLoading(true);
@@ -138,21 +146,29 @@ export default function PortfolioForm({
       {/* CATEGORY */}
       <div>
         <label className={labelClasses}>Category *</label>
-        <Select
-          value={category}
-          onValueChange={(value) => setValue("category", value as any)}
-          disabled={isLoading}
-        >
-          <SelectTrigger className={`${inputClasses} mt-1`}>
-            <SelectValue placeholder="Select a category" />
-          </SelectTrigger>
-          <SelectContent className="bg-black/90 text-white border border-white/10">
-            <SelectItem value="Video">Video</SelectItem>
-            <SelectItem value="Photography">Photography</SelectItem>
-            <SelectItem value="Web App">Web App</SelectItem>
-            <SelectItem value="Marketing">Marketing</SelectItem>
-          </SelectContent>
-        </Select>
+        <Controller
+          name="category"
+          control={control}
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={(value) =>
+                field.onChange(value as PortfolioFormData["category"])
+              }
+              disabled={isLoading}
+            >
+              <SelectTrigger className={`${inputClasses} mt-1`}>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent className="bg-black/90 text-white border border-white/10">
+                <SelectItem value="Video">Video</SelectItem>
+                <SelectItem value="Photography">Photography</SelectItem>
+                <SelectItem value="Web App">Web App</SelectItem>
+                <SelectItem value="Marketing">Marketing</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
 
         {errors.category && (
           <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>

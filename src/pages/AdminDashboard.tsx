@@ -76,15 +76,21 @@ export default function AdminDashboard() {
   /* Add item */
   const handleAddItem = async (data: any) => {
     setIsSubmitting(true);
-    const { error } = await addItem(data);
+    try {
+      const { error } = await addItem(data);
 
-    if (!error) {
-      toast.success("Portfolio item added");
-      setIsFormOpen(false);
-    } else {
+      if (!error) {
+        toast.success("Portfolio item added");
+        setIsFormOpen(false);
+      } else {
+        toast.error("Failed to add item");
+      }
+    } catch (err) {
+      console.error("❌ Add Portfolio Item Error:", err);
       toast.error("Failed to add item");
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   /* Update item */
@@ -92,16 +98,21 @@ export default function AdminDashboard() {
     if (!editingItem) return;
     setIsSubmitting(true);
 
-    const { error } = await updateItem(editingItem.id, data);
+    try {
+      const { error } = await updateItem(editingItem.id, data);
 
-    if (!error) {
-      toast.success("Portfolio item updated");
-      setEditingItem(null);
-    } else {
+      if (!error) {
+        toast.success("Portfolio item updated");
+        setEditingItem(null);
+      } else {
+        toast.error("Failed to update item");
+      }
+    } catch (err) {
+      console.error("❌ Update Portfolio Item Error:", err);
       toast.error("Failed to update item");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   /* Delete item */

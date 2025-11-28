@@ -18,7 +18,7 @@ export default function Home() {
           className="absolute inset-0 bg-cover bg-center scale-105"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1950&q=80')",
+              "url('https://i.postimg.cc/9FL77KrM/karina-pics-129.png')",
           }}
         />
 
