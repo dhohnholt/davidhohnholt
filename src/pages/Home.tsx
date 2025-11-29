@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { ArrowRight } from "lucide-react";
+import BackgroundImage from "@/components/BackgroundImage";
 
 export default function Home() {
   const { items } = usePortfolio();
@@ -41,7 +42,7 @@ export default function Home() {
 
           <div className="flex justify-center gap-4">
             <Link
-              to="/booking"
+              to="/booking#booking-form"
               className="px-6 py-3 bg-white text-black rounded-md font-medium hover:bg-gray-200 transition"
             >
               Book a Session
@@ -83,7 +84,7 @@ export default function Home() {
                 Professional photography at your event or location.
               </p>
               <Link
-                to="/booking"
+                to="/booking#booking-form"
                 className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
               >
                 Book Now
@@ -100,7 +101,7 @@ export default function Home() {
                 Most sessions require one hour of editing per hour of shooting.
               </p>
               <Link
-                to="/booking"
+                to="/booking#booking-form"
                 className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
               >
                 Book Now
@@ -116,116 +117,132 @@ export default function Home() {
       {/* ================================================== */}
       {/* WHAT I OFFER — synced to Pricing Page offerings     */}
       {/* ================================================== */}
-      <section className="w-full max-w-6xl mx-auto px-6 mt-10">
-        <h2 className="text-4xl md:text-5xl font-bold text-center text-amber-400 mb-12">
-          What I Offer
-        </h2>
+      {/* Full-width background band */}
+      <div className="relative w-full py-24 overflow-hidden">
+        {/* 🔮 Full-width blurred background */}
+        <div
+          className="absolute inset-0 bg-cover bg-center scale-110 blur-2xl opacity-30"
+          style={{
+            backgroundImage:
+              "url('https://i.postimg.cc/9FL77KrM/karina-pics-129.png')",
+          }}
+        />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {/* Shooting Only – Book Now */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
-            <h3 className="text-2xl font-semibold text-amber-400 mb-2">
-              Shooting Only — RAW + JPG
-            </h3>
-            <p className="text-stone-300 text-sm leading-relaxed flex-grow">
-              Clean lighting, crisp compositions, and fast file transfer for
-              clients who want their own editing workflow.
-            </p>
-            <Link
-              to="/booking"
-              className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
-            >
-              Book Now
-            </Link>
+        {/* Dark wash for contrast */}
+        <div className="absolute inset-0 bg-black/60" />
+
+        {/* Actual section content */}
+        <section className="relative z-10 w-full max-w-6xl mx-auto px-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-center text-amber-400 mb-12">
+            What I Offer
+          </h2>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {/* Shooting Only – Book Now */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
+              <h3 className="text-2xl font-semibold text-amber-400 mb-2">
+                Shooting Only — RAW + JPG
+              </h3>
+              <p className="text-stone-300 text-sm leading-relaxed flex-grow">
+                Clean lighting, crisp compositions, and fast file transfer for
+                clients who want their own editing workflow.
+              </p>
+              <Link
+                to="/booking#booking-form"
+                className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
+              >
+                Book Now
+              </Link>
+            </div>
+
+            {/* Quinceañeras */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
+              <h3 className="text-2xl font-semibold text-amber-400 mb-2">
+                Quinceañeras
+              </h3>
+              <p className="text-stone-300 text-sm leading-relaxed flex-grow">
+                Complete storytelling: portraits, ceremony, dances, reception,
+                details, and candid moments.
+              </p>
+              <Link
+                to="/booking#booking-form"
+                className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
+              >
+                Book Now
+              </Link>
+            </div>
+
+            {/* Graduation */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
+              <h3 className="text-2xl font-semibold text-amber-400 mb-2">
+                Graduation Sessions
+              </h3>
+              <p className="text-stone-300 text-sm leading-relaxed flex-grow">
+                One-hour sessions with cap & gown, props, multiple outfits, and
+                fast delivery.
+              </p>
+              <Link
+                to="/booking#booking-form"
+                className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
+              >
+                Book Now
+              </Link>
+            </div>
+
+            {/* Prom */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
+              <h3 className="text-2xl font-semibold text-amber-400 mb-2">
+                Prom Portraits
+              </h3>
+              <p className="text-stone-300 text-sm leading-relaxed flex-grow">
+                Couples, groups, individuals, beautifully lit before the big
+                night.
+              </p>
+              <Link
+                to="/booking#booking-form"
+                className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
+              >
+                Book Now
+              </Link>
+            </div>
+
+            {/* Parties */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
+              <h3 className="text-2xl font-semibold text-amber-400 mb-2">
+                Parties & Events
+              </h3>
+              <p className="text-stone-300 text-sm leading-relaxed flex-grow">
+                Birthdays, milestones, celebrations — candid storytelling +
+                beautiful details.
+              </p>
+              <Link
+                to="/booking#booking-form"
+                className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
+              >
+                Book Now
+              </Link>
+            </div>
+
+            {/* Sports */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
+              <h3 className="text-2xl font-semibold text-amber-400 mb-2">
+                Team & Individual Sports
+              </h3>
+              <p className="text-stone-300 text-sm leading-relaxed flex-grow">
+                Banners, dramatic portraits, and fast workflow for leagues and
+                schools.
+              </p>
+
+              <Link
+                to="/booking#booking-form"
+                className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
+              >
+                Book Now
+              </Link>
+            </div>
           </div>
-
-          {/* Quinceañeras */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
-            <h3 className="text-2xl font-semibold text-amber-400 mb-2">
-              Quinceañeras
-            </h3>
-            <p className="text-stone-300 text-sm leading-relaxed flex-grow">
-              Complete storytelling: portraits, ceremony, dances, reception,
-              details, and candid moments.
-            </p>
-            <Link
-              to="/booking"
-              className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
-            >
-              Book Now
-            </Link>
-          </div>
-
-          {/* Graduation */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
-            <h3 className="text-2xl font-semibold text-amber-400 mb-2">
-              Graduation Sessions
-            </h3>
-            <p className="text-stone-300 text-sm leading-relaxed flex-grow">
-              One-hour sessions with cap & gown, props, multiple outfits, and
-              fast delivery.
-            </p>
-            <Link
-              to="/booking"
-              className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
-            >
-              Book Now
-            </Link>
-          </div>
-
-          {/* Prom */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
-            <h3 className="text-2xl font-semibold text-amber-400 mb-2">
-              Prom Portraits
-            </h3>
-            <p className="text-stone-300 text-sm leading-relaxed flex-grow">
-              Couples, groups, individuals, beautifully lit before the big
-              night.
-            </p>
-            <Link
-              to="/booking"
-              className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
-            >
-              Book Now
-            </Link>
-          </div>
-
-          {/* Parties */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
-            <h3 className="text-2xl font-semibold text-amber-400 mb-2">
-              Parties & Events
-            </h3>
-            <p className="text-stone-300 text-sm leading-relaxed flex-grow">
-              Birthdays, milestones, celebrations — candid storytelling +
-              beautiful details.
-            </p>
-            <Link
-              to="/booking"
-              className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
-            >
-              Book Now
-            </Link>
-          </div>
-
-          {/* Sports */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition flex flex-col">
-            <h3 className="text-2xl font-semibold text-amber-400 mb-2">
-              Team & Individual Sports
-            </h3>
-            <p className="text-stone-300 text-sm leading-relaxed flex-grow">
-              Banners, dramatic portraits, and fast workflow for leagues and
-              schools.
-            </p>
-
-            <Link
-              to="/booking"
-              className="mt-6 inline-block bg-amber-500 text-black px-5 py-2 rounded-lg font-bold hover:bg-amber-600 transition"
-            >
-              Book Now
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* Soft transition */}
       <div className="py-24 bg-[#0f0f0f] mt-20">
@@ -308,7 +325,7 @@ export default function Home() {
           className="flex justify-center gap-6 mt-8"
         >
           <Link
-            to="/booking"
+            to="/booking#booking-form"
             className="px-6 py-3 bg-white text-black rounded-md font-medium hover:bg-gray-200 transition"
           >
             Book a Session

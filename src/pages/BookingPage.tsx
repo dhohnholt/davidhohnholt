@@ -117,7 +117,7 @@ export default function BookingPage() {
           {/* -------------------------------------------------- */}
           {/* BOOKING FORM — now living inside the hero blur      */}
           {/* -------------------------------------------------- */}
-          <div className="mt-12 max-w-3xl mx-auto px-4 sm:px-6">
+            <div id="booking-form" className="mt-12 max-w-3xl mx-auto px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

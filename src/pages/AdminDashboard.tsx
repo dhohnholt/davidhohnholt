@@ -31,7 +31,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Breadcrumb from "@/components/ui/breadcrumb";
 import PortfolioCard from "@/components/PortfolioCard";
-import PortfolioForm from "@/components/PortfolioForm";
+import PortfolioForm, {
+  type PortfolioFormData,
+} from "@/components/PortfolioForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useBookings } from "@/hooks/useBookings";
@@ -73,7 +75,7 @@ export default function AdminDashboard() {
   };
 
   /* Add item */
-  const handleAddItem = async (data: any) => {
+  const handleAddItem = async (data: PortfolioFormData) => {
     setIsSubmitting(true);
     try {
       const { error } = await addItem(data);
@@ -93,7 +95,7 @@ export default function AdminDashboard() {
   };
 
   /* Update item */
-  const handleUpdateItem = async (data: any) => {
+  const handleUpdateItem = async (data: PortfolioFormData) => {
     if (!editingItem) return;
     setIsSubmitting(true);
 

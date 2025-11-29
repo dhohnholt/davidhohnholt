@@ -120,7 +120,7 @@ export default function Navigation() {
 
             {/* BOOK NOW BUTTON */}
             <Link
-              to="/booking"
+              to="/booking#booking-form"
               className="ml-3 px-4 py-2 rounded-xl bg-amber-500 text-black font-semibold shadow-lg hover:bg-amber-600 transition-all"
             >
               Book Now
@@ -188,7 +188,7 @@ export default function Navigation() {
               )}
 
               <Link
-                to="/booking"
+                to="/booking#booking-form"
                 onClick={() => setIsOpen(false)}
                 className="block w-full mt-3 text-center px-4 py-3 bg-amber-500 text-black font-bold rounded-xl shadow-lg hover:bg-amber-600"
               >

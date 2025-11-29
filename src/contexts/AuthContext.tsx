@@ -7,7 +7,7 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase, type Profile } from "@/lib/supabase";
 
 interface AuthContextProps {
@@ -19,8 +19,8 @@ interface AuthContextProps {
   signIn: (
     email: string,
     password: string
-  ) => Promise<{ data: { session: Session | null } | null; error: any }>;
-  signOut: () => Promise<{ error: any }>;
+  ) => Promise<{ data: { session: Session | null } | null; error: AuthError | null }>;
+  signOut: () => Promise<{ error: AuthError | null }>;
   refetchProfile: () => Promise<void>;
 }
 

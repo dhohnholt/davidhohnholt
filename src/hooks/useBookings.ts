@@ -23,8 +23,8 @@ export function useBookings() {
       if (error) throw error;
 
       setBookings(data || []);
-    } catch (err: any) {
-      console.error("❌ fetchBookings error:", err.message || err);
+    } catch (err: unknown) {
+      console.error("❌ fetchBookings error:", err);
       toast.error("Failed to load bookings.");
     } finally {
       setBookingsLoading(false);
@@ -59,8 +59,8 @@ export function useBookings() {
         prev.map((b) => (b.id === id ? { ...b, ...data } : b))
       );
       toast.success("Booking updated");
-    } catch (err: any) {
-      console.error("❌ updateBooking error:", err.message || err);
+    } catch (err: unknown) {
+      console.error("❌ updateBooking error:", err);
       toast.error("Failed to update booking.");
     } finally {
       setSaving(false);
@@ -80,8 +80,8 @@ export function useBookings() {
 
       setBookings((prev) => prev.filter((b) => b.id !== id));
       toast.success("Booking deleted");
-    } catch (err: any) {
-      console.error("❌ deleteBooking error:", err.message || err);
+    } catch (err: unknown) {
+      console.error("❌ deleteBooking error:", err);
       toast.error("Failed to delete booking.");
     } finally {
       setSaving(false);

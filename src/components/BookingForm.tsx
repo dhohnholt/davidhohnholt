@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import {
   Calendar,
   Clock,
@@ -7,6 +7,7 @@ import {
   Send,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
 type BookingFormProps = {
@@ -31,48 +32,92 @@ export default function EventBookingForm({
     eventDate: "",
     eventTime: "",
     location: "",
-    baseRate: 125,
+    baseRate: 200,
     hoursBooked: 1,
     notes: "",
   });
 
-  const handleChange = (e: any) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: ChangeEvent<
+    HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+  >) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e: any) => {
+  // ----------------------------------------------------
+  // SUBMIT FORM
+  // ----------------------------------------------------
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      // Auto-generate session title (not shown to client)
       const sessionTitle =
         defaultSessionTitle || `${formData.eventType} — ${formData.eventDate}`;
 
-      const { error } = await supabase.from("bookings").insert({
-        event_type: formData.eventType,
-        session_title: sessionTitle,
-        client_name: formData.clientName,
-        client_email: formData.clientEmail,
-        client_phone: formData.clientPhone,
-        event_date: formData.eventDate,
-        event_time: formData.eventTime,
-        location: formData.location,
-        base_rate: Number(formData.baseRate),
-        hours_booked: Number(formData.hoursBooked),
-        notes: formData.notes,
-        payment_status: "pending",
-        slug: null,
-        preview_gallery_url: null,
-        download_gallery_url: null,
-      });
+      // 1️⃣ Create booking in Supabase
+      const { data, error } = await supabase
+        .from("bookings")
+        .insert({
+          event_type: formData.eventType,
+          session_title: sessionTitle,
+          client_name: formData.clientName,
+          client_email: formData.clientEmail,
+          client_phone: formData.clientPhone,
+          event_date: formData.eventDate,
+          event_time: formData.eventTime,
+          location: formData.location,
+          base_rate: Number(formData.baseRate),
+          hours_booked: Number(formData.hoursBooked),
+          notes: formData.notes,
+          payment_status: "pending",
+          slug: null,
+          preview_gallery_url: null,
+          download_gallery_url: null,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      // 2️⃣ Build Supabase-style webhook payload
+      const webhookPayload = {
+        type: "INSERT",
+        table: "bookings",
+        schema: "public",
+        record: data,
+      };
+
+      console.log("📨 Sending email webhook payload:", webhookPayload);
+
+      // 3️⃣ Call Edge Function — WITH CORRECT HEADERS
+      await fetch(import.meta.env.VITE_BOOKING_EMAIL_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // 🔥 REQUIRED for Supabase Function Gateway — prevents 401
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify(webhookPayload),
+      }).catch((err) => {
+        console.error("⚠️ Edge function fetch error:", err);
+      });
+
+      // 4️⃣ Success UX
+      toast.custom(
+        () => (
+          <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto bg-amber-400 text-black font-semibold text-lg px-8 py-5 rounded-3xl shadow-2xl border border-black/30">
+              Thank you, we will be in touch.
+            </div>
+          </div>
+        ),
+        { duration: 4000 }
+      );
       setSubmitted(true);
       onSubmitted();
+      setTimeout(() => window.location.reload(), 1200);
     } catch (err) {
-      console.error(err);
-      alert("Error submitting booking. Please try again.");
+      console.error("❌ Booking submit error:", err);
+      alert("There was an error submitting your booking. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -109,7 +154,6 @@ export default function EventBookingForm({
   return (
     <div className="px-4 py-12">
       <div className="max-w-3xl mx-auto bg-black/50 backdrop-blur-lg p-10 rounded-3xl border border-white/10 shadow-2xl">
-        {/* FORM TITLE */}
         <h2 className="text-4xl font-extrabold text-center text-white drop-shadow mb-2">
           Book an Event
         </h2>
@@ -144,9 +188,8 @@ export default function EventBookingForm({
             </select>
           </div>
 
-          {/* CLIENT CONTACT */}
+          {/* CONTACT INFO */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Name */}
             <div>
               <label className="block mb-2 font-medium text-stone-300">
                 Client Name *
@@ -161,7 +204,6 @@ export default function EventBookingForm({
               />
             </div>
 
-            {/* Phone */}
             <div>
               <label className="block mb-2 font-medium text-stone-300">
                 Phone *
@@ -176,7 +218,6 @@ export default function EventBookingForm({
               />
             </div>
 
-            {/* Email */}
             <div className="sm:col-span-2">
               <label className="block mb-2 font-medium text-stone-300">
                 Email *
@@ -192,7 +233,7 @@ export default function EventBookingForm({
             </div>
           </div>
 
-          {/* DATE & TIME */}
+          {/* DATE + TIME */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block mb-2 font-medium text-stone-300">
