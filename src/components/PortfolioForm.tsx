@@ -98,9 +98,14 @@ export default function PortfolioForm({
   }, [defaultValues, reset]);
 
   const handleFormSubmit = async (data: PortfolioFormData) => {
+    const normalizedData: PortfolioFormData = {
+      ...data,
+      featured_images: data.featured_images ?? [],
+      media_url: data.media_url ?? null,
+    };
     setIsLoading(true);
     try {
-      await onSubmit(data);
+      await onSubmit(normalizedData);
       if (!item) reset();
     } finally {
       setIsLoading(false);

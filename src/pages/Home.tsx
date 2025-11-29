@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { ArrowRight } from "lucide-react";
-import BackgroundImage from "@/components/BackgroundImage";
 
 export default function Home() {
   const { items } = usePortfolio();

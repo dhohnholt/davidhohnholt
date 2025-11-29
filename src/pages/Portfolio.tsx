@@ -67,14 +67,27 @@ export default function Portfolio() {
           />
         </div>
 
-        {/* HERO — cinematic */}
-        <section className="py-20 bg-gradient-to-b from-black via-black/70 to-black">
-          <div className="max-w-7xl mx-auto px-6 text-center">
+        {/* HERO — cinematic with background image */}
+        <section className="relative h-[70vh] w-full overflow-hidden bg-black">
+          {/* BACKGROUND IMAGE */}
+          <div
+            className="absolute inset-0 bg-cover bg-center scale-105"
+            style={{
+              backgroundImage:
+                "url('https://lightroom.adobe.com/v2c/spaces/e110740675b5431489d323fc9dc4f77e/assets/837ea1c45ee34aa594c75bd0d27271a1/revisions/f29a1465f2646179aeb25b16a9857143/renditions/ebe5cdddd4de586a5ab87dbf33070f3a')",
+            }}
+          />
+
+          {/* DARKENING GRADIENT */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-black" />
+
+          {/* TEXT CONTENT */}
+          <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 text-center">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-5xl md:text-6xl font-light tracking-tight text-amber-400 mb-6"
+              className="text-5xl md:text-6xl font-light tracking-tight text-amber-400 mb-6 drop-shadow-[0_0_25px_rgba(255,200,0,0.3)]"
             >
               Portfolio
             </motion.h1>

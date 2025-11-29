@@ -43,19 +43,23 @@ export function usePortfolio() {
   // ADD NEW ITEM
   // ---------------------------------------------------------------------------
   const addItem = useCallback(async (payload: PortfolioInput) => {
+    const insertPayload = {
+      title: payload.title,
+      description: payload.description,
+      category: payload.category,
+      media_url: payload.media_url,
+      thumbnail_url: payload.thumbnail_url,
+      embed_code: payload.embed_code ?? null,
+      gallery_embed_url: payload.gallery_embed_url ?? null,
+      position: payload.position ?? 0,
+      ...(payload.featured_images && payload.featured_images.length
+        ? { featured_images: payload.featured_images }
+        : {}),
+    };
+
     const { data, error } = await supabase
       .from("portfolio_items")
-      .insert({
-        title: payload.title,
-        description: payload.description,
-        category: payload.category,
-        media_url: payload.media_url,
-        thumbnail_url: payload.thumbnail_url,
-        embed_code: payload.embed_code ?? null,
-        gallery_embed_url: payload.gallery_embed_url ?? null,
-        position: payload.position ?? 0,
-        featured_images: payload.featured_images ?? [],
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
@@ -85,7 +89,9 @@ export function usePortfolio() {
           embed_code: payload.embed_code ?? null,
           gallery_embed_url: payload.gallery_embed_url ?? null,
           position: payload.position ?? 0,
-          featured_images: payload.featured_images ?? [],
+          ...(payload.featured_images && payload.featured_images.length
+            ? { featured_images: payload.featured_images }
+            : {}),
         })
         .eq("id", id)
         .select()
