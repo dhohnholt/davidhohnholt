@@ -1,39 +1,10 @@
 // src/hooks/usePortfolio.ts
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-
-export type PortfolioCategory =
-  | "Video"
-  | "Photography"
-  | "Web App"
-  | "Marketing";
-
-export interface PortfolioItem {
-  featured_images?: string[];
-  id: string;
-  title: string;
-  description: string;
-  category: PortfolioCategory;
-  media_url: string | null;
-  thumbnail_url: string;
-  embed_code?: string | null;
-  gallery_embed_url?: string | null;
-  position: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PortfolioInput {
-  featured_images?: string[];
-  title: string;
-  description: string;
-  category: PortfolioCategory;
-  media_url: string | null;
-  thumbnail_url: string;
-  embed_code?: string | null;
-  gallery_embed_url?: string | null;
-  position?: number;
-}
+import {
+  supabase,
+  type PortfolioInput,
+  type PortfolioItem,
+} from "@/lib/supabase";
 
 export function usePortfolio() {
   const [items, setItems] = useState<PortfolioItem[]>([]);

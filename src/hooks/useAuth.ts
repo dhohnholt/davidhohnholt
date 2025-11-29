@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { User } from "@supabase/supabase-js";
-import { supabase, Profile } from "@/lib/supabase";
+import { supabase, type Profile } from "@/lib/supabase";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -10,15 +10,11 @@ export function useAuth() {
   const hasFetchedProfile = useRef(false);
 
   const fetchProfile = async (userId: string) => {
-    if (hasFetchedProfile.current) 
-      // In useAuth, right before the return:
-console.log("🔄 useAuth state:", {
-  user: user?.email,
-  authLoading,
-  profileLoading,
-  hasFetchedProfile: hasFetchedProfile.current
-});
+    if (hasFetchedProfile.current) {
+      console.debug("ℹ️ Profile already fetched, skipping.");
       return;
+    }
+
     setProfileLoading(true);
 
     try {
@@ -31,9 +27,10 @@ console.log("🔄 useAuth state:", {
       if (error) {
         console.error("❌ Error fetching profile:", error.message);
         setProfile(null);
-      } else {
-        setProfile(data);
+        return;
       }
+
+      setProfile(data as Profile);
     } catch (err) {
       console.error("❌ Unexpected error fetching profile:", err);
       setProfile(null);

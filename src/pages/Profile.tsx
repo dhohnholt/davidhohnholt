@@ -1,19 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, Mail, Calendar, Shield, Edit, Save, X, Camera } from 'lucide-react';
+import { Shield, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 
 const profileSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters').optional(),
@@ -25,10 +21,7 @@ type ProfileForm = z.infer<typeof profileSchema>;
 export default function Profile() {
   console.log("✅ Profile component mounted");
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const { user, profile, authLoading, refetchProfile } = useAuth();
+  const { user, profile, authLoading } = useAuth();
   console.log("🔍 Profile.tsx Context State:", { 
     user: user?.email, 
     profile, 
@@ -36,10 +29,7 @@ export default function Profile() {
   });
 
   const {
-    register,
-    handleSubmit,
     reset,
-    formState: { errors },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -62,47 +52,6 @@ export default function Profile() {
       });
     }
   }, [profile, reset]);
-
-  const onSubmit = async (data: ProfileForm) => {
-    console.log("✅ Updating profile with data:", data);
-    setIsUpdating(true);
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: data.full_name || null,
-          avatar_url: data.avatar_url || null,
-        })
-        .eq('id', user?.id);
-
-      if (error) {
-        console.error("❌ Error updating profile:", error);
-        toast.error('Failed to update profile');
-      } else {
-        console.log("✅ Profile updated successfully in DB");
-        toast.success('Profile updated successfully');
-        setIsEditing(false);
-        console.log("🔄 Calling refetchProfile()");
-        await refetchProfile();
-      }
-    } catch (err) {
-      console.error("❌ Unexpected error updating profile:", err);
-      toast.error('An unexpected error occurred');
-    } finally {
-      setIsUpdating(false);
-      console.log("✅ Finished profile update cycle");
-    }
-  };
-
-  const handleCancelEdit = () => {
-    console.log("✅ Canceling profile edit, resetting form");
-    setIsEditing(false);
-    reset({
-      full_name: profile?.full_name || '',
-      avatar_url: profile?.avatar_url || '',
-    });
-  };
 
   // ✅ Show loading spinner
   if (authLoading) {
@@ -183,7 +132,11 @@ export default function Profile() {
                       />
                       <AvatarFallback className="bg-[#014040] text-white text-2xl">
                         {profile?.full_name
-                          ? profile.full_name.split(' ').map((n) => n[0]).join('').toUpperCase()
+                          ? profile.full_name
+                              .split(' ')
+                              .map((part: string) => part[0])
+                              .join('')
+                              .toUpperCase()
                           : user.email?.[0].toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>

@@ -1,7 +1,12 @@
 // src/components/PortfolioForm.tsx
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  Controller,
+  type FieldValues,
+} from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -27,7 +32,7 @@ const schema = z.object({
   featured_images: z.array(z.string().url()).optional(),
 });
 
-export type PortfolioFormData = z.infer<typeof schema>;
+export type PortfolioFormData = z.infer<typeof schema> & FieldValues;
 
 interface PortfolioFormProps {
   item?: PortfolioItem & { featured_images?: string[] };
@@ -44,24 +49,24 @@ export default function PortfolioForm({
 }: PortfolioFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const defaultValues = useMemo(
+  const defaultValues = useMemo<PortfolioFormData>(
     () =>
       item
         ? {
             title: item.title,
             description: item.description,
-            category: item.category,
-            media_url: item.media_url,
-            thumbnail_url: item.thumbnail_url,
-            featured_images: item.featured_images ?? [],
-          }
+          category: item.category,
+          media_url: item.media_url ?? "",
+          thumbnail_url: item.thumbnail_url,
+            featured_images: item.featured_images ?? ([] as string[]),
+        }
         : {
             title: "",
             description: "",
             category: "Web App",
             media_url: "",
             thumbnail_url: "",
-            featured_images: [],
+            featured_images: [] as string[],
           },
     [item]
   );
@@ -78,9 +83,12 @@ export default function PortfolioForm({
     defaultValues,
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<
+    PortfolioFormData,
+    "featured_images"
+  >({
     control,
-    name: "featured_images",
+    name: "featured_images" as const,
   });
 
   const thumbnail_url = watch("thumbnail_url");

@@ -56,7 +56,7 @@ export default function ProjectDetail() {
     );
   }
 
-  const featured = (project as any).featured_images as string[] | undefined;
+  const featured = project.featured_images;
 
   return (
     <>

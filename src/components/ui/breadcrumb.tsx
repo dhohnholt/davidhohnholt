@@ -7,25 +7,33 @@ interface Crumb {
 
 interface BreadcrumbProps {
   crumbs: Crumb[];
+  textColor?: string;
 }
 
-export default function Breadcrumb({ crumbs }: BreadcrumbProps) {
+export default function Breadcrumb({
+  crumbs,
+  textColor,
+}: BreadcrumbProps) {
+  const textColorClass = textColor ?? "text-gray-500";
   const navigate = useNavigate();
 
   return (
-    <nav className="text-sm text-gray-500 mb-6" aria-label="breadcrumb">
+    <nav
+      className={`text-sm ${textColorClass} mb-6`}
+      aria-label="breadcrumb"
+    >
       <ol className="flex items-center space-x-2">
         {crumbs.map((crumb, index) => (
           <li key={index} className="flex items-center space-x-2">
             {crumb.href ? (
               <button
                 onClick={() => navigate(crumb.href!)}
-                className="bg-transparent text-gray-600 hover:text-[#014040] hover:underline transition-colors"
+                className={`bg-transparent text-inherit hover:text-amber-400 hover:underline transition-colors`}
               >
                 {crumb.label}
               </button>
             ) : (
-              <span className="text-gray-700 font-medium truncate">
+              <span className="font-medium truncate text-inherit">
                 {crumb.label}
               </span>
             )}

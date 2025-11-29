@@ -1,5 +1,4 @@
 // src/pages/BookingPage.tsx
-import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import BookingForm from "@/components/BookingForm"; // ✅ FIXED IMPORT
 import { motion } from "framer-motion";
@@ -8,8 +7,6 @@ import { Link } from "react-router-dom";
 export default function BookingPage() {
   const HERO_IMAGE =
     "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2000&q=80";
-
-  const [showSheet, setShowSheet] = useState(false);
 
   return (
     <div className="min-h-screen bg-black text-white pb-24">

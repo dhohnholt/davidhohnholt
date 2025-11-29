@@ -9,10 +9,17 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+type BookingFormProps = {
+  defaultEventType?: string;
+  defaultSessionTitle?: string;
+  onSubmitted?: () => void;
+};
+
 export default function EventBookingForm({
   defaultEventType = "",
+  defaultSessionTitle = "",
   onSubmitted = () => {},
-}) {
+}: BookingFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -38,7 +45,8 @@ export default function EventBookingForm({
 
     try {
       // Auto-generate session title (not shown to client)
-      const sessionTitle = `${formData.eventType} — ${formData.eventDate}`;
+      const sessionTitle =
+        defaultSessionTitle || `${formData.eventType} — ${formData.eventDate}`;
 
       const { error } = await supabase.from("bookings").insert({
         event_type: formData.eventType,

@@ -2,7 +2,6 @@
 import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import BookingForm from "@/components/BookingForm";
-import EventBookingForm from "@/components/BookingForm";
 
 type SectionProps = {
   title: string;

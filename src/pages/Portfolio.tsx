@@ -16,10 +16,14 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import Breadcrumb from "@/components/ui/breadcrumb";
+import type { PortfolioItem } from "@/lib/supabase";
+import type { PortfolioFormData } from "@/components/PortfolioForm";
 
 export default function Portfolio() {
   const [activeFilter, setActiveFilter] = useState("All");
-  const [editingProject, setEditingProject] = useState(null);
+  const [editingProject, setEditingProject] = useState<PortfolioItem | null>(
+    null
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { items, loading, deleteItem, updateItem, addItem, refetch } =
@@ -33,7 +37,7 @@ export default function Portfolio() {
       ? items
       : items.filter((item) => item.category === activeFilter);
 
-  const handleSave = async (data) => {
+  const handleSave = async (data: PortfolioFormData) => {
     const result = editingProject
       ? await updateItem(editingProject.id, data)
       : await addItem(data);
@@ -194,7 +198,7 @@ export default function Portfolio() {
 
             <div className="overflow-y-auto flex-1 mt-4">
               <PortfolioForm
-                item={editingProject}
+                item={editingProject ?? undefined}
                 onSubmit={handleSave}
                 onCancel={() => setIsModalOpen(false)}
               />

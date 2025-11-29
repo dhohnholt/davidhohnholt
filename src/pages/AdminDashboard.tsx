@@ -28,7 +28,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Breadcrumb from "@/components/ui/breadcrumb";
 import PortfolioCard from "@/components/PortfolioCard";
@@ -42,7 +41,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const { user, profile, isAdmin, signOut, authLoading } = useAuth();
-  const { items, loading, addItem, updateItem, deleteItem, refetch } =
+  const { items, loading, addItem, updateItem, deleteItem } =
     usePortfolio();
   const {
     bookings,
