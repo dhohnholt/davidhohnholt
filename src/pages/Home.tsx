@@ -18,7 +18,7 @@ export default function Home() {
           className="absolute inset-0 bg-cover bg-center scale-105"
           style={{
             backgroundImage:
-              "url('https://i.postimg.cc/9FL77KrM/karina-pics-129.png')",
+              "url('https://lightroom.adobe.com/v2c/spaces/6e291e8f988a4aeb8d11ecc918577626/assets/81eaa4307d1a4d818bc09e54573b409f/revisions/737460fa0d8c46e79a3a969403ea40fb/renditions/c473c6475fb8d0c0efb03279caaaff92')",
           }}
         />
 
