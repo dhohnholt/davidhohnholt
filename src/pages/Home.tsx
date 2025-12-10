@@ -28,7 +28,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
-          className="absolute bottom-20 left-1/2 -translate-x-1/2 text-center text-white max-w-3xl px-6"
+          className="absolute bottom-20 left-12 text-left text-white max-w-3xl px-6"
         >
           <h1 className="text-5xl md:text-6xl font-light tracking-tight mb-4 drop-shadow-lg">
             Moments Built to Last
@@ -39,7 +39,7 @@ export default function Home() {
             with care.
           </p>
 
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-start gap-4">
             <Link
               to="/booking#booking-form"
               className="px-6 py-3 bg-white text-black rounded-md font-medium hover:bg-gray-200 transition"
