@@ -1,5 +1,4 @@
 // src/pages/PricingPage.tsx
-import React from "react";
 
 type PackageProps = {
   title: string;
